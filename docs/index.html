@@ -264,36 +264,40 @@
                     if(this.search.id){
                         await this.getCharacter(this.search.id);
                     }
-                    else if(this.search.name && this.search.server){
-                        this.pages = 0;
-
-                        const {Results} = await fetchEx("https://xivapi.com/character/search", {
-                            params: {
-                                name: this.search.name.split(/\s/).join("+"),
-                                server: this.search.server
-                            }
-                        });
-
-                        if(!Results.length){
-                            this.formReset();
-                            this.vNotify("検索結果が見つかりませんでした", "error");
-                            return;
-                        }
-
-                        if(Results.length === 50){
-                            this.vNotify("検索結果が多すぎるため、全件を取得できませんでした", "error");
-                        }
-
-                        for(const candidate of Results){
-                            this.candidates.push(candidate);
-                        }
-
-                        this.pages = 2;
+                    else if(this.search.name){
+                        await this._getCharacterList(this.search.name, this.search.server);
                     }
                     else{
                         this.vNotify("検索ワードを入力してください", "error");
                     }
                 },
+
+                async _getCharacterList(name, server){
+                    this.pages = 0;
+
+                    const {Results} = await fetchEx("https://xivapi.com/character/search", {
+                        params: {
+                            name: name.split(/\s/).join("+"),
+                            server: server
+                        }
+                    });
+
+                    if(!Results.length){
+                        this.formReset();
+                        this.vNotify("検索結果が見つかりませんでした", "error");
+                        return;
+                    }
+
+                    if(Results.length === 50){
+                        this.vNotify("検索結果が多すぎるため、上位50件のみ取得されました", "info");
+                    }
+
+                    for(const candidate of Results){
+                        this.candidates.push(candidate);
+                    }
+
+                    this.pages = 2;
+            },
 
                 async getCharacter(id){
                     try{
