@@ -119,9 +119,9 @@
                                         <template v-if="character.marry && character.ring">
                                             <v-card-title>現在している可能性が高いです。</v-card-title>
 
-                                            <v-card-subtitle>
+                                            <v-card-text>
                                                 残念... 無理に迫らず潔く諦めて自分磨きに精進しましょう。
-                                            </v-card-subtitle>
+                                            </v-card-text>
 
                                             <v-card-text>
                                                 Note: 所持マウントからエターナルチョコボを検出しました
@@ -133,11 +133,11 @@
                                         <template v-else-if="character.marry">
                                             <v-card-title>しています。</v-card-title>
 
-                                            <v-card-subtitle>
+                                            <v-card-text>
                                                 現在進行形なら残念... 無理に迫らず潔く諦めて自分磨きに精進しましょう。
                                                 <br>
                                                 過去形ならチャンス! あなたの立ち回り次第で可能性は無限大です。
-                                            </v-card-subtitle>
+                                            </v-card-text>
 
                                             <v-card-text>
                                                 Note: 所持マウントからエターナルチョコボを検出しました
@@ -147,11 +147,11 @@
                                         <template v-else>
                                             <v-card-title>していません。</v-card-title>
 
-                                            <v-card-subtitle>
+                                            <v-card-text>
                                                 チャンス! あなたの立ち回り次第で可能性は無限大です。
                                                 <br>
                                                 サブキャラでないことを祈ります...
-                                            </v-card-subtitle>
+                                            </v-card-text>
                                         </template>
 
                                         <v-card-text>
@@ -167,7 +167,7 @@
                 <v-footer dark padless color="pink lighten-3">
                     <v-container fluid class="pa-0">
                         <v-row no-gutters justify="center">
-                            <v-btn text tile block href="https://github.com/dojyorin/ffxiv-you-married" target="_blank" rel="noopener">
+                            <v-btn text tile block href="https://github.com/dojyorin/ffxiv-areyoumarried" target="_blank" rel="noopener">
                                 <v-icon left>mdi-github</v-icon>
                                 <span>GitHub Repository</span>
                             </v-btn>
