@@ -90,7 +90,8 @@
 
                                             <v-list-item-content>
                                                 <v-list-item-title>{{candidate.Name}}</v-list-item-title>
-                                                <v-list-item-subtitle>Lodestone ID: {{candidate.ID}}</v-list-item-subtitle>
+                                                <v-list-item-subtitle>ID: {{candidate.ID}}</v-list-item-subtitle>
+                                                <v-list-item-subtitle>Server: {{candidate.Server}}</v-list-item-subtitle>
                                             </v-list-item-content>
                                         </v-list-item>
                                     </template>
@@ -112,7 +113,11 @@
                                 <v-col cols sm=10 md="6">
                                     <v-card flat tile>
                                         <v-card-title>{{character.name}}</v-card-title>
-                                        <v-card-subtitle>Lodestone ID: <a :href="`https://jp.finalfantasyxiv.com/lodestone/character/${character.id}`" target="_blank" rel="noopener">{{character.id}}</a></v-card-subtitle>
+                                        <v-card-subtitle>
+                                            ID: <a :href="`https://jp.finalfantasyxiv.com/lodestone/character/${character.id}`" target="_blank" rel="noopener">{{character.id}}</a>
+                                            <br>
+                                            Server: {{character.server}}
+                                        </v-card-subtitle>
 
                                         <v-card-text class="py-0">さんはエターナルバンドを...</v-card-text>
 
@@ -239,6 +244,7 @@
                     character: {
                         name: "",
                         id: 0,
+                        server: "",
                         picture: "",
                         marry: false,
                         ring: false
@@ -312,6 +318,7 @@
 
                         this.character.name = Character.Name;
                         this.character.id = Character.ID;
+                        this.character.server = `${Character.Server} (${Character.DC})`;
                         this.character.picture = Character.Portrait;
                         this.character.marry = Mounts?.some(({Name}) => Name === "Ceremony Chocobo") ?? false;
                         this.character.ring = [
