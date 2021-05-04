@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+        <meta name="referrer" content="no-referrer">
+
+        <script>
+            if(/(trident|edge)\//i.test(navigator.userAgent)){
+                alert("お使いのウェブブラウザには対応していません。");
+                document.execCommand("stop");
+            }
+        </script>
+
+        <link rel="icon" href="./favicon.ico">
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuetify@latest/dist/vuetify.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@latest/css/materialdesignicons.min.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&family=Kosugi+Maru">
+
+        <script src="https://cdn.jsdelivr.net/npm/vue@latest/dist/vue.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vuetify@latest/dist/vuetify.min.js"></script>
+
+        <title>FF14 闇のツール</title>
+    </head>
+
+    <body>
+        <template id="vue">
+            <v-app>
+                <v-app-bar app dark color="pink lighten-3">
+                    <v-toolbar-title class="pl-4">ふ～ん。で、エタバンしてるの？</v-toolbar-title>
+                </v-app-bar>
+
+                <v-snackbar app dark top centered :color="notify.color" v-model="notify.show">
+                    <span>{{notify.msg}}</span>
+                    <template #action="{attrs}">
+                        <v-btn icon v-bind="attrs" @click="notify.show = false">
+                            <v-icon>mdi-close</v-icon>
+                        </v-btn>
+                      </template>
+                </v-snackbar>
+
+                <v-main>
+                    <v-window touchless class="fill-height" v-model="pages">
+                        <v-window-item transition="fade-transition" class="fill-height">
+                            <v-row no-gutters class="fill-height" justify="center" align="center">
+                                <v-progress-circular indeterminate size="128" width="6" color="blue lighten-2">Loading...</v-progress-circular>
+                            </v-row>
+                        </v-window-item>
+
+                        <v-window-item transition="fade-transition">
+                            <v-row no-gutters justify="center">
+                                <v-card flat tile>
+                                    <v-card-title>気になるあの子の名前を入れてみよう...!!</v-card-title>
+                                </v-card>
+
+                                <v-col cols sm="6" md="4" xl="2">
+                                    <v-card flat tile>
+                                        <v-card-text>
+                                            <v-text-field clearable prepend-icon="mdi-alphabetical-variant" label="キャラクター名" v-model="search.name"></v-text-field>
+                                            <v-autocomplete clearable prepend-icon="mdi-web" label="ワールド" :items="servers" v-model="search.server"></v-autocomplete>
+                                        </v-card-text>
+
+                                        <v-card-text class="text-center pa-0">または</v-card-text>
+
+                                        <v-card-text>
+                                            <v-text-field clearable prepend-icon="mdi-numeric" type="number" label="Lodestone ID" v-model="search.id"></v-text-field>
+                                        </v-card-text>
+
+                                        <v-card-actions>
+                                            <v-btn dark block color="blue lighten-2" @click="doSearch()">
+                                                <span>検索</span>
+                                                <v-icon right>mdi-account-search-outline</v-icon>
+                                            </v-btn>
+                                        </v-card-actions>
+                                    </v-card>
+                                </v-col>
+                            </v-row>
+                        </v-window-item>
+
+                        <v-window-item transition="fade-transition">
+                            <v-container>
+                                <v-list>
+                                    <v-subheader>検索結果: {{candidates.length}} 件</v-subheader>
+                                    <template v-for="(candidate, i) in candidates">
+                                        <v-list-item :key="i" @click="getCharacter(candidate.ID)">
+                                            <v-list-item-avatar>
+                                                <v-img :src="candidate.Avatar"></v-img>
+                                            </v-list-item-avatar>
+
+                                            <v-list-item-content>
+                                                <v-list-item-title>{{candidate.Name}}</v-list-item-title>
+                                                <v-list-item-subtitle>Lodestone ID: {{candidate.ID}}</v-list-item-subtitle>
+                                            </v-list-item-content>
+                                        </v-list-item>
+                                    </template>
+                                </v-list>
+                            </v-container>
+                        </v-window-item>
+
+                        <v-window-item transition="fade-transition">
+                            <v-row no-gutters justify="center">
+                                <v-card flat tile>
+                                    <v-card-actions>
+                                        <v-btn text tile @click="location.reload(true)">
+                                            <v-icon left>mdi-reload</v-icon>
+                                            最初からやり直す
+                                        </v-btn>
+                                    </v-card-actions>
+                                </v-card>
+
+                                <v-col cols sm=10 md="6">
+                                    <v-card flat tile>
+                                        <v-card-title>{{character.name}}</v-card-title>
+                                        <v-card-subtitle>Lodestone ID: <a :href="`https://jp.finalfantasyxiv.com/lodestone/character/${character.id}`" target="_blank" rel="noopener">{{character.id}}</a></v-card-subtitle>
+
+                                        <v-card-text class="py-0">さんはエタバンを...</v-card-text>
+
+                                        <template v-if="character.marry && character.ring">
+                                            <v-card-title>現在している可能性が高いです。</v-card-title>
+
+                                            <v-card-subtitle>
+                                                残念... 無理に迫らず潔く諦めて自分磨きに精進しましょう。
+                                            </v-card-subtitle>
+
+                                            <v-card-text>
+                                                Note: 所持マウントからエターナルチョコボを検出しました
+                                                <br>
+                                                Note: 装備品からエターナルリング(ミラプリ含)を検出しました
+                                            </v-card-text>
+                                        </template>
+
+                                        <template v-else-if="character.marry">
+                                            <v-card-title>しています。</v-card-title>
+
+                                            <v-card-subtitle>
+                                                現在進行形なら残念... 無理に迫らず潔く諦めて自分磨きに精進しましょう。
+                                                <br>
+                                                過去形ならチャンス! あなたの立ち回り次第で可能性は無限大です。
+                                            </v-card-subtitle>
+    
+                                            <v-card-text>
+                                                Note: 所持マウントからエターナルチョコボを検出しました
+                                            </v-card-text>
+                                        </template>
+
+                                        <template v-else>
+                                            <v-card-title>していません。</v-card-title>
+
+                                            <v-card-subtitle>
+                                                チャンス! あなたの立ち回り次第で可能性は無限大です。
+                                                <br>
+                                                サブキャラでないことを祈ります...
+                                            </v-card-subtitle>    
+                                        </template>
+
+                                        <v-card-text>
+                                            <v-img :src="character.picture"></v-img>
+                                        </v-card-text>
+                                    </v-card>
+                                </v-col>
+                            </v-row>
+                        </v-window-item>
+                    </v-window>
+                </v-main>
+
+                <v-footer dark padless color="pink lighten-3">
+                    <v-container fluid class="pa-0">
+                        <v-row no-gutters justify="center">
+                            <v-btn text tile block href="https://github.com/dojyorin/ffxiv-you-married" target="_blank" rel="noopener">
+                                <v-icon left>mdi-github</v-icon>
+                                <span>GitHub Repository</span>
+                            </v-btn>
+                        </v-row>
+
+                        <v-row no-gutters justify="center">
+                            <span class="text-caption">Powered by XIVAPI.</span>
+                        </v-row>
+
+                        <v-row no-gutters justify="center">
+                            <span class="text-caption">Copyright SQUARE ENIX CO., LTD. All Rights Reserved.</span>
+                        </v-row>
+                    </v-container>
+                </v-footer>
+            </v-app>
+        </template>
+    </body>
+
+    <script async type="module">
+        async function fetchEx(url, option){
+            return (await fetch(Object.entries(option?.params ?? {}).reduce((u, [k, v])=>{
+                u.searchParams.append(k, v);
+                return u;
+            }, new URL(url, /^http(s|):\/\//i.test(url) ? undefined : location.href)), {
+                headers: Object.entries(option?.headers ?? {}).reduce((h, [k, v])=>{
+                    h.append(k, v);
+                    return h;
+                }, new Headers()),
+                method: option?.method ?? "get",
+                mode: option?.mode ?? "cors",
+                cache: option?.cache ?? "no-cache",
+                credentials: option?.credentials ?? "omit",
+                referrerPolicy: option?.referrerPolicy ?? "no-referrer",
+                referrer: option?.referrer ?? "",
+                redirect: option?.redirect ?? "follow",
+                keepalive: option?.keepalive ?? false,
+                integrity: option?.integrity ?? "",
+                signal: option?.signal ?? null,
+                window: null,
+                body: option?.body ?? null
+            }))[option?.type ?? "json"]();
+        }
+
+        const vue = new Vue({
+            el: "#vue",
+            vuetify: new Vuetify(),
+
+            async mounted(){
+                for(const server of await fetchEx("https://xivapi.com/servers")){
+                    this.servers.push(server);
+                }
+            },
+
+            data(){
+                return {
+                    notify: {
+                        show: false,
+                        msg: "",
+                        color: ""
+                    },
+                    pages: 1,
+                    servers: [],
+                    candidates: [],
+                    search: {
+                        name: "",
+                        server: "",
+                        id: ""
+                    },
+                    character: {
+                        name: "",
+                        id: 0,
+                        picture: "",
+                        marry: false,
+                        ring: false
+                    }
+                }
+            },
+
+            methods: {
+                vNotify(msg, color){
+                    this.notify.msg = msg;
+                    this.notify.color = color;
+                    this.notify.show = true;
+                },
+
+                formReset(){
+                    this.search.name = "";
+                    this.search.server = "";
+                    this.search.id = "";
+                    this.pages = 1;
+                },
+
+                async doSearch(){
+                    if(this.search.id){
+                        await this.getCharacter(this.search.id);
+                    }
+                    else if(this.search.name && this.search.server){
+                        this.pages = 0;
+
+                        const {Results} = await fetchEx("https://xivapi.com/character/search", {
+                            params: {
+                                name: this.search.name.split(/\s/).join("+"),
+                                server: this.search.server
+                            }
+                        });
+
+                        if(!Results.length){
+                            this.formReset();
+                            this.vNotify("検索結果が見つかりませんでした", "error");
+                            return;
+                        }
+
+                        if(Results.length === 50){
+                            this.vNotify("検索結果が多すぎるため、全件を取得できませんでした", "error");
+                        }
+
+                        for(const candidate of Results){
+                            this.candidates.push(candidate);
+                        }
+
+                        this.pages = 2;
+                    }
+                    else{
+                        this.vNotify("検索ワードを入力してください", "error");
+                    }
+                },
+
+                async getCharacter(id){
+                    try{
+                        this.pages = 0;
+
+                        const {Character, Mounts} = await fetchEx(`https://xivapi.com/character/${id}`, {
+                            params: {
+                                data: "MIMO",
+                                extended: 1
+                            }
+                        });
+
+                        this.character.name = Character.Name;
+                        this.character.id = Character.ID;
+                        this.character.picture = Character.Portrait;
+                        this.character.marry = Mounts?.some(({Name}) => Name === "Ceremony Chocobo") ?? false;
+                        this.character.ring = [
+                            Character.GearSet.Gear.Ring1?.Mirage?.ID,
+                            Character.GearSet.Gear.Ring2?.Mirage?.ID,
+                            Character.GearSet.Gear.Ring1?.Item?.ID,
+                            Character.GearSet.Gear.Ring2?.Item?.ID
+                        ].some(ring => ring === 8575);
+
+                        this.pages = 3;
+                    }
+                    catch{
+                        this.formReset();
+                        this.vNotify("検索結果が見つかりませんでした", "error");
+                    }
+                }
+            }
+        });
+    </script>
+
+    <style>
+        ::-webkit-scrollbar{
+            display: none !important;
+        }
+        .v-application{
+            font-family: "M PLUS Rounded 1c", "Kosugi Maru" !important;
+        }
+        .v-btn{
+            text-transform: none !important;
+            letter-spacing: normal !important;
+            text-indent: 0 !important;
+        }
+    </style>
+</html>
