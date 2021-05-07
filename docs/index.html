@@ -276,8 +276,8 @@
                     }
 
                     Object.assign(this.$data.character, this.$options.data().character);
-                    Object.assign(this.$data.pages, this.$options.data().pages);
-                    Object.assign(this.$data.candidates, this.$options.data().candidates);
+                    this.pages = 1;
+                    this.candidates.splice(0);
                 },
 
                 async doSearch(){
