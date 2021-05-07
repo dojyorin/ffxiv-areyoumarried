@@ -21,7 +21,7 @@
         <script src="https://cdn.jsdelivr.net/npm/vue@latest/dist/vue.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/vuetify@latest/dist/vuetify.min.js"></script>
 
-        <title>FF14 闇のツール</title>
+        <title>FF14 闇ツール</title>
     </head>
 
     <body>
@@ -43,7 +43,7 @@
                 <v-main>
                     <v-window touchless class="fill-height" v-model="pages">
                         <v-window-item transition="fade-transition" class="fill-height">
-                            <v-row no-gutters class="fill-height" justify="center" align="center">
+                            <v-row no-gutters justify="center" align="center" class="fill-height">
                                 <v-progress-circular indeterminate size="128" width="6" color="blue lighten-2">Loading...</v-progress-circular>
                             </v-row>
                         </v-window-item>
@@ -79,12 +79,21 @@
                         </v-window-item>
 
                         <v-window-item transition="fade-transition">
-                            <v-container>
+                            <v-container fluid>
+                                <v-card flat tile>
+                                    <v-card-actions class="justify-center">
+                                        <v-btn text tile @click="backHome(false)">
+                                            <v-icon left>mdi-arrow-left</v-icon>
+                                            <span>検索をやり直す</span>
+                                        </v-btn>
+                                    </v-card-actions>
+                                </v-card>
+
                                 <v-list>
                                     <v-subheader>検索結果: {{candidates.length}} 件</v-subheader>
                                     <template v-for="(candidate, i) in candidates">
                                         <v-list-item :key="i" @click="getCharacter(candidate.ID)">
-                                            <v-list-item-avatar>
+                                            <v-list-item-avatar size="48">
                                                 <v-img :src="candidate.Avatar"></v-img>
                                             </v-list-item-avatar>
 
@@ -102,9 +111,9 @@
                         <v-window-item transition="fade-transition">
                             <v-card flat tile>
                                 <v-card-actions class="justify-center">
-                                    <v-btn text tile @click="location.reload(true)">
+                                    <v-btn text tile @click="backHome(true)">
                                         <v-icon left>mdi-reload</v-icon>
-                                        最初からやり直す
+                                        <span>最初からやり直す</span>
                                     </v-btn>
                                 </v-card-actions>
                             </v-card>
@@ -122,7 +131,7 @@
                                         <v-card-text class="py-0">さんはエターナルバンドを...</v-card-text>
 
                                         <template v-if="character.marry && character.ring">
-                                            <v-card-title>現在している可能性が高いです。</v-card-title>
+                                            <v-card-title>している可能性が高いです。</v-card-title>
 
                                             <v-card-text>
                                                 残念... 無理に迫らず潔く諦めて自分磨きに精進しましょう。
@@ -136,12 +145,12 @@
                                         </template>
 
                                         <template v-else-if="character.marry">
-                                            <v-card-title>しています。</v-card-title>
+                                            <v-card-title>している可能性があります。</v-card-title>
 
                                             <v-card-text>
-                                                現在進行形なら残念... 無理に迫らず潔く諦めて自分磨きに精進しましょう。
+                                                継続中なら残念... 無理に迫らず潔く諦めて自分磨きに精進しましょう。
                                                 <br>
-                                                過去形ならチャンス! あなたの立ち回り次第で可能性は無限大です。
+                                                解消済ならチャンス! あなたの立ち回り次第で可能性は無限大です。
                                             </v-card-text>
 
                                             <v-card-text>
@@ -150,12 +159,14 @@
                                         </template>
 
                                         <template v-else>
-                                            <v-card-title>していません。</v-card-title>
+                                            <v-card-title>していない可能性が高いです。</v-card-title>
 
                                             <v-card-text>
                                                 チャンス! あなたの立ち回り次第で可能性は無限大です。
                                                 <br>
                                                 サブキャラでないことを祈ります...
+                                                <br>
+                                                (エターナルチョコボを入手できない無料プランでしている可能性もあります)
                                             </v-card-text>
                                         </template>
 
@@ -259,11 +270,14 @@
                     this.notify.show = true;
                 },
 
-                formReset(){
-                    this.search.name = "";
-                    this.search.server = "";
-                    this.search.id = "";
-                    this.pages = 1;
+                backHome(reset){
+                    if(reset){
+                        Object.assign(this.$data.search, this.$options.data().search);
+                    }
+
+                    Object.assign(this.$data.character, this.$options.data().character);
+                    Object.assign(this.$data.pages, this.$options.data().pages);
+                    Object.assign(this.$data.candidates, this.$options.data().candidates);
                 },
 
                 async doSearch(){
@@ -283,13 +297,13 @@
 
                     const {Results} = await fetchEx("https://xivapi.com/character/search", {
                         params: {
-                            name: name.split(/\s/).join("+"),
+                            name: name.trim().split(/\s/).join("+"),
                             server: server
                         }
                     });
 
                     if(!Results.length){
-                        this.formReset();
+                        this.backHome(true);
                         this.vNotify("検索結果が見つかりませんでした", "error");
                         return;
                     }
@@ -331,7 +345,7 @@
                         this.pages = 3;
                     }
                     catch{
-                        this.formReset();
+                        this.backHome(true);
                         this.vNotify("検索結果が見つかりませんでした", "error");
                     }
                 }
