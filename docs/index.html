@@ -28,13 +28,14 @@
         <template id="vue">
             <v-app>
                 <v-app-bar app dark color="pink lighten-3">
-                    <v-toolbar-title class="pl-4">ふ～ん。で、エタバンしてるの？</v-toolbar-title>
+                    <v-toolbar-title class="pl-1">ふ～ん。で、エタバンしてるの？</v-toolbar-title>
                 </v-app-bar>
 
-                <v-snackbar app dark top centered :color="notify.color" v-model="notify.show">
-                    <span>{{notify.msg}}</span>
-                    <template #action="{attrs}">
-                        <v-btn icon v-bind="attrs" @click="notify.show = false">
+                <v-snackbar app dark top centered :color="notify.color" v-model="notify.visible">
+                    <v-icon left>{{notify.icon}}</v-icon>
+                    <span>{{notify.message}}</span>
+                    <template #action>
+                        <v-btn icon @click="notify.visible = false">
                             <v-icon>mdi-close</v-icon>
                         </v-btn>
                       </template>
@@ -91,8 +92,8 @@
 
                                 <v-list>
                                     <v-subheader>検索結果: {{candidates.length}} 件</v-subheader>
-                                    <template v-for="(candidate, i) in candidates">
-                                        <v-list-item :key="i" @click="getCharacter(candidate.ID)">
+                                    <template v-for="candidate in candidates">
+                                        <v-list-item :key="candidate.ID" @click="getCharacter(candidate.ID)">
                                             <v-list-item-avatar size="48">
                                                 <v-img :src="candidate.Avatar"></v-img>
                                             </v-list-item-avatar>
@@ -231,18 +232,13 @@
             el: "#vue",
             vuetify: new Vuetify(),
 
-            async mounted(){
-                for(const server of await fetchEx("https://xivapi.com/servers")){
-                    this.servers.push(server);
-                }
-            },
-
             data(){
                 return {
                     notify: {
-                        show: false,
-                        msg: "",
-                        color: ""
+                        visible: false,
+                        message: "",
+                        color: "",
+                        icon: ""
                     },
                     pages: 1,
                     servers: [],
@@ -263,11 +259,18 @@
                 }
             },
 
+            async mounted(){
+                for(const server of await fetchEx("https://xivapi.com/servers")){
+                    this.servers.push(server);
+                }
+            },
+
             methods: {
-                vNotify(msg, color){
-                    this.notify.msg = msg;
-                    this.notify.color = color;
-                    this.notify.show = true;
+                vNotify(message, color, icon){
+                    this.notify.message = message;
+                    this.notify.color = color ?? "info";
+                    this.notify.icon = icon ?? "mdi-information-outline";
+                    this.notify.visible = true;
                 },
 
                 backHome(reset){
@@ -285,14 +288,14 @@
                         await this.getCharacter(this.search.id);
                     }
                     else if(this.search.name){
-                        await this._getCharacterList(this.search.name, this.search.server);
+                        await this.getCharacterList(this.search.name, this.search.server);
                     }
                     else{
                         this.vNotify("検索ワードを入力してください", "error");
                     }
                 },
 
-                async _getCharacterList(name, server){
+                async getCharacterList(name, server){
                     this.pages = 0;
 
                     const {Results} = await fetchEx("https://xivapi.com/character/search", {
@@ -309,7 +312,7 @@
                     }
 
                     if(Results.length === 50){
-                        this.vNotify("検索結果が多すぎるため、上位50件のみ取得されました", "info");
+                        this.vNotify("検索結果が多すぎるため、上位50件のみ取得されました");
                     }
 
                     for(const candidate of Results){
@@ -317,7 +320,7 @@
                     }
 
                     this.pages = 2;
-            },
+                },
 
                 async getCharacter(id){
                     try{
