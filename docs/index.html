@@ -41,14 +41,14 @@
                       </template>
                 </v-snackbar>
 
+                <v-overlay opacity="0.8" v-model="loading">
+                    <v-progress-circular indeterminate size="128" width="6" color="blue lighten-2">
+                        <span class="white--text">Loading...</span>
+                    </v-progress-circular>
+                </v-overlay>
+
                 <v-main>
                     <v-window touchless class="fill-height" v-model="pages">
-                        <v-window-item transition="fade-transition" class="fill-height">
-                            <v-row no-gutters justify="center" align="center" class="fill-height">
-                                <v-progress-circular indeterminate size="128" width="6" color="blue lighten-2">Loading...</v-progress-circular>
-                            </v-row>
-                        </v-window-item>
-
                         <v-window-item transition="fade-transition">
                             <v-card flat tile>
                                 <v-card-title class="justify-center">気になるあの子の名前を入れてみよう...!!</v-card-title>
@@ -240,7 +240,8 @@
                         color: "",
                         icon: ""
                     },
-                    pages: 1,
+                    pages: 0,
+                    loading: true,
                     servers: [],
                     candidates: [],
                     search: {
@@ -263,6 +264,8 @@
                 for(const server of await fetchEx("https://xivapi.com/servers")){
                     this.servers.push(server);
                 }
+
+                this.loading = false;
             },
 
             methods: {
@@ -279,7 +282,10 @@
                     }
 
                     Object.assign(this.$data.character, this.$options.data().character);
-                    this.pages = 1;
+
+                    this.loading = false;
+                    this.pages = 0;
+
                     this.candidates.splice(0);
                 },
 
@@ -296,7 +302,7 @@
                 },
 
                 async getCharacterList(name, server){
-                    this.pages = 0;
+                    this.loading = true;
 
                     const {Results} = await fetchEx("https://xivapi.com/character/search", {
                         params: {
@@ -319,12 +325,13 @@
                         this.candidates.push(candidate);
                     }
 
-                    this.pages = 2;
+                    this.loading = false;
+                    this.pages = 1;
                 },
 
                 async getCharacter(id){
                     try{
-                        this.pages = 0;
+                        this.loading = true;
 
                         const {Character, Mounts} = await fetchEx(`https://xivapi.com/character/${id}`, {
                             params: {
@@ -345,7 +352,8 @@
                             Character.GearSet.Gear.Ring2?.Item?.ID
                         ].some(ring => ring === 8575);
 
-                        this.pages = 3;
+                        this.loading = false;
+                        this.pages = 2;
                     }
                     catch{
                         this.backHome(true);
