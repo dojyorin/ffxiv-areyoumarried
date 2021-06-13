@@ -25,7 +25,7 @@
     </head>
 
     <body>
-        <v-app id="vue">
+        <v-app id="vue" style="visibility: hidden;">
             <v-app-bar app dark color="pink lighten-3">
                 <v-toolbar-title class="pl-1">ふ～ん。で、エタバンしてるの？</v-toolbar-title>
             </v-app-bar>
@@ -353,7 +353,7 @@
             },
 
             async mounted(){
-                document.body.style.visibility = "unset";
+                this.$el.style.visibility = "unset";
 
                 for(const server of await fetchEx("https://xivapi.com/servers")){
                     this.servers.push(server);
@@ -367,9 +367,6 @@
     <style>
         ::-webkit-scrollbar{
             display: none !important;
-        }
-        body{
-            visibility: hidden;
         }
         .v-application{
             font-family: "M PLUS Rounded 1c", "Kosugi Maru" !important;
