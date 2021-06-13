@@ -37,7 +37,7 @@
                     <v-btn icon @click="notify.visible = false">
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
-                    </template>
+                </template>
             </v-snackbar>
 
             <v-overlay opacity="0.9" v-model="loading">
@@ -353,6 +353,8 @@
             },
 
             async mounted(){
+                document.body.style.visibility = "unset";
+
                 for(const server of await fetchEx("https://xivapi.com/servers")){
                     this.servers.push(server);
                 }
@@ -365,6 +367,9 @@
     <style>
         ::-webkit-scrollbar{
             display: none !important;
+        }
+        body{
+            visibility: hidden;
         }
         .v-application{
             font-family: "M PLUS Rounded 1c", "Kosugi Maru" !important;
