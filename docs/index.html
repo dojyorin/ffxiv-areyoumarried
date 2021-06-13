@@ -7,7 +7,7 @@
 
         <script>
             if(/(trident|edge)\//i.test(navigator.userAgent)){
-                alert("お使いのウェブブラウザには対応していません。");
+                alert("お使いのウェブブラウザは対応していません。");
                 document.execCommand("stop");
             }
         </script>
@@ -25,182 +25,180 @@
     </head>
 
     <body>
-        <template id="vue">
-            <v-app>
-                <v-app-bar app dark color="pink lighten-3">
-                    <v-toolbar-title class="pl-1">ふ～ん。で、エタバンしてるの？</v-toolbar-title>
-                </v-app-bar>
+        <v-app id="vue">
+            <v-app-bar app dark color="pink lighten-3">
+                <v-toolbar-title class="pl-1">ふ～ん。で、エタバンしてるの？</v-toolbar-title>
+            </v-app-bar>
 
-                <v-snackbar app dark top centered :color="notify.color" v-model="notify.visible">
-                    <v-icon left>{{notify.icon}}</v-icon>
-                    <span>{{notify.message}}</span>
-                    <template #action>
-                        <v-btn icon @click="notify.visible = false">
-                            <v-icon>mdi-close</v-icon>
-                        </v-btn>
-                      </template>
-                </v-snackbar>
+            <v-snackbar app dark top centered :color="notify.color" v-model="notify.visible">
+                <v-icon left>{{notify.icon}}</v-icon>
+                <span>{{notify.message}}</span>
+                <template #action>
+                    <v-btn icon @click="notify.visible = false">
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                    </template>
+            </v-snackbar>
 
-                <v-overlay opacity="0.8" v-model="loading">
-                    <v-progress-circular indeterminate size="128" width="6" color="blue lighten-2">
-                        <span class="white--text">Loading...</span>
-                    </v-progress-circular>
-                </v-overlay>
+            <v-overlay opacity="0.9" v-model="loading">
+                <v-progress-circular indeterminate size="128" width="6" color="blue lighten-2">
+                    <span class="white--text">Loading...</span>
+                </v-progress-circular>
+            </v-overlay>
 
-                <v-main>
-                    <v-window touchless class="fill-height" v-model="pages">
-                        <v-window-item transition="fade-transition">
-                            <v-card flat tile>
-                                <v-card-title class="justify-center">気になるあの子の名前を入れてみよう...!!</v-card-title>
-                            </v-card>
+            <v-main>
+                <v-window touchless class="fill-height" v-model="pages">
+                    <v-window-item transition="fade-transition">
+                        <v-card flat tile>
+                            <v-card-title class="justify-center">気になるあの子の名前を入れてみよう...!!</v-card-title>
+                        </v-card>
 
-                            <v-row no-gutters justify="center">
-                                <v-col cols sm="6" md="4" xl="2">
-                                    <v-card flat tile>
-                                        <v-card-text>
-                                            <v-text-field clearable prepend-icon="mdi-alphabetical-variant" label="キャラクター名" v-model="search.name"></v-text-field>
-                                            <v-autocomplete clearable prepend-icon="mdi-web" label="ワールド" :items="servers" v-model="search.server"></v-autocomplete>
-                                        </v-card-text>
-
-                                        <v-card-text class="text-center pa-0">または</v-card-text>
-
-                                        <v-card-text>
-                                            <v-text-field clearable prepend-icon="mdi-numeric" type="number" label="Lodestone ID" v-model="search.id"></v-text-field>
-                                        </v-card-text>
-
-                                        <v-card-actions>
-                                            <v-btn dark block color="blue lighten-2" @click="doSearch()">
-                                                <span>検索</span>
-                                                <v-icon right>mdi-account-search-outline</v-icon>
-                                            </v-btn>
-                                        </v-card-actions>
-                                    </v-card>
-                                </v-col>
-                            </v-row>
-                        </v-window-item>
-
-                        <v-window-item transition="fade-transition">
-                            <v-container fluid>
+                        <v-row no-gutters justify="center">
+                            <v-col cols sm="6" md="4" xl="2">
                                 <v-card flat tile>
-                                    <v-card-actions class="justify-center">
-                                        <v-btn text tile @click="backHome(false)">
-                                            <v-icon left>mdi-arrow-left</v-icon>
-                                            <span>検索をやり直す</span>
+                                    <v-card-text>
+                                        <v-text-field clearable prepend-icon="mdi-alphabetical-variant" label="キャラクター名" v-model="search.name"></v-text-field>
+                                        <v-autocomplete clearable prepend-icon="mdi-web" label="ワールド" :items="servers" v-model="search.server"></v-autocomplete>
+                                    </v-card-text>
+
+                                    <v-card-text class="text-center pa-0">または</v-card-text>
+
+                                    <v-card-text>
+                                        <v-text-field clearable prepend-icon="mdi-numeric" type="number" label="Lodestone ID" v-model="search.id"></v-text-field>
+                                    </v-card-text>
+
+                                    <v-card-actions>
+                                        <v-btn dark block color="blue lighten-2" @click="doSearch()">
+                                            <span>検索</span>
+                                            <v-icon right>mdi-account-search-outline</v-icon>
                                         </v-btn>
                                     </v-card-actions>
                                 </v-card>
+                            </v-col>
+                        </v-row>
+                    </v-window-item>
 
-                                <v-list>
-                                    <v-subheader>検索結果: {{candidates.length}} 件</v-subheader>
-                                    <template v-for="candidate in candidates">
-                                        <v-list-item :key="candidate.ID" @click="getCharacter(candidate.ID)">
-                                            <v-list-item-avatar size="48">
-                                                <v-img :src="candidate.Avatar"></v-img>
-                                            </v-list-item-avatar>
-
-                                            <v-list-item-content>
-                                                <v-list-item-title>{{candidate.Name}}</v-list-item-title>
-                                                <v-list-item-subtitle>ID: {{candidate.ID}}</v-list-item-subtitle>
-                                                <v-list-item-subtitle>Server: {{candidate.Server}}</v-list-item-subtitle>
-                                            </v-list-item-content>
-                                        </v-list-item>
-                                    </template>
-                                </v-list>
-                            </v-container>
-                        </v-window-item>
-
-                        <v-window-item transition="fade-transition">
+                    <v-window-item transition="fade-transition">
+                        <v-container fluid>
                             <v-card flat tile>
                                 <v-card-actions class="justify-center">
-                                    <v-btn text tile @click="backHome(true)">
-                                        <v-icon left>mdi-reload</v-icon>
-                                        <span>最初からやり直す</span>
+                                    <v-btn text tile @click="backHome(false)">
+                                        <v-icon left>mdi-arrow-left</v-icon>
+                                        <span>検索をやり直す</span>
                                     </v-btn>
                                 </v-card-actions>
                             </v-card>
 
-                            <v-row no-gutters justify="center">
-                                <v-col cols sm=10 md="6">
-                                    <v-card flat tile>
-                                        <v-card-title>{{character.name}}</v-card-title>
-                                        <v-card-subtitle>
-                                            ID: <a :href="`https://jp.finalfantasyxiv.com/lodestone/character/${character.id}`" target="_blank" rel="noopener">{{character.id}}</a>
-                                            <br>
-                                            Server: {{character.server}}
-                                        </v-card-subtitle>
+                            <v-list>
+                                <v-subheader>検索結果: {{candidates.length}} 件</v-subheader>
+                                <template v-for="candidate in candidates">
+                                    <v-list-item :key="candidate.ID" @click="getCharacter(candidate.ID)">
+                                        <v-list-item-avatar size="48">
+                                            <v-img :src="candidate.Avatar"></v-img>
+                                        </v-list-item-avatar>
 
-                                        <v-card-text class="py-0">さんはエターナルバンドを...</v-card-text>
+                                        <v-list-item-content>
+                                            <v-list-item-title>{{candidate.Name}}</v-list-item-title>
+                                            <v-list-item-subtitle>ID: {{candidate.ID}}</v-list-item-subtitle>
+                                            <v-list-item-subtitle>Server: {{candidate.Server}}</v-list-item-subtitle>
+                                        </v-list-item-content>
+                                    </v-list-item>
+                                </template>
+                            </v-list>
+                        </v-container>
+                    </v-window-item>
 
-                                        <template v-if="character.marry && character.ring">
-                                            <v-card-title>している可能性が高いです。</v-card-title>
+                    <v-window-item transition="fade-transition">
+                        <v-card flat tile>
+                            <v-card-actions class="justify-center">
+                                <v-btn text tile @click="backHome(true)">
+                                    <v-icon left>mdi-reload</v-icon>
+                                    <span>最初からやり直す</span>
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
 
-                                            <v-card-text>
-                                                残念... 無理に迫らず潔く諦めて自分磨きに精進しましょう。
-                                            </v-card-text>
+                        <v-row no-gutters justify="center">
+                            <v-col cols sm=10 md="6">
+                                <v-card flat tile>
+                                    <v-card-title>{{character.name}}</v-card-title>
+                                    <v-card-subtitle>
+                                        ID: <a :href="`https://jp.finalfantasyxiv.com/lodestone/character/${character.id}`" target="_blank" rel="noopener">{{character.id}}</a>
+                                        <br>
+                                        Server: {{character.server}}
+                                    </v-card-subtitle>
 
-                                            <v-card-text>
-                                                Note: 所持マウントからエターナルチョコボを検出しました
-                                                <br>
-                                                Note: 装備品/武具投影からエターナルリングを検出しました
-                                            </v-card-text>
-                                        </template>
+                                    <v-card-text class="py-0">さんはエターナルバンドを...</v-card-text>
 
-                                        <template v-else-if="character.marry">
-                                            <v-card-title>している可能性があります。</v-card-title>
-
-                                            <v-card-text>
-                                                継続中なら残念... 無理に迫らず潔く諦めて自分磨きに精進しましょう。
-                                                <br>
-                                                解消済ならチャンス! あなたの立ち回り次第で可能性は無限大です。
-                                            </v-card-text>
-
-                                            <v-card-text>
-                                                Note: 所持マウントからエターナルチョコボを検出しました
-                                            </v-card-text>
-                                        </template>
-
-                                        <template v-else>
-                                            <v-card-title>していない可能性が高いです。</v-card-title>
-
-                                            <v-card-text>
-                                                チャンス! あなたの立ち回り次第で可能性は無限大です。
-                                                <br>
-                                                サブキャラでないことを祈ります...
-                                                <br>
-                                                (エターナルチョコボを入手できない無料プランでしている可能性もあります)
-                                            </v-card-text>
-                                        </template>
+                                    <template v-if="character.marry && character.ring">
+                                        <v-card-title>している可能性が高いです。</v-card-title>
 
                                         <v-card-text>
-                                            <v-img :src="character.picture"></v-img>
+                                            残念... 無理に迫らず潔く諦めて自分磨きに精進しましょう。
                                         </v-card-text>
-                                    </v-card>
-                                </v-col>
-                            </v-row>
-                        </v-window-item>
-                    </v-window>
-                </v-main>
 
-                <v-footer dark padless color="pink lighten-3">
-                    <v-container fluid class="pa-0">
-                        <v-row no-gutters justify="center">
-                            <v-btn text tile block href="https://github.com/dojyorin/ffxiv-areyoumarried" target="_blank" rel="noopener">
-                                <v-icon left>mdi-github</v-icon>
-                                <span>GitHub Repository</span>
-                            </v-btn>
-                        </v-row>
+                                        <v-card-text>
+                                            Note: 所持マウントからエターナルチョコボを検出しました
+                                            <br>
+                                            Note: 装備品/武具投影からエターナルリングを検出しました
+                                        </v-card-text>
+                                    </template>
 
-                        <v-row no-gutters justify="center">
-                            <span class="text-caption">Powered by XIVAPI.</span>
-                        </v-row>
+                                    <template v-else-if="character.marry">
+                                        <v-card-title>している可能性があります。</v-card-title>
 
-                        <v-row no-gutters justify="center">
-                            <span class="text-caption">Copyright SQUARE ENIX CO., LTD. All Rights Reserved.</span>
+                                        <v-card-text>
+                                            継続中なら残念... 無理に迫らず潔く諦めて自分磨きに精進しましょう。
+                                            <br>
+                                            解消済ならチャンス! あなたの立ち回り次第で可能性は無限大です。
+                                        </v-card-text>
+
+                                        <v-card-text>
+                                            Note: 所持マウントからエターナルチョコボを検出しました
+                                        </v-card-text>
+                                    </template>
+
+                                    <template v-else>
+                                        <v-card-title>していない可能性が高いです。</v-card-title>
+
+                                        <v-card-text>
+                                            チャンス! あなたの立ち回り次第で可能性は無限大です。
+                                            <br>
+                                            サブキャラでないことを祈ります...
+                                            <br>
+                                            (エターナルチョコボを入手できない無料プランでしている可能性もあります)
+                                        </v-card-text>
+                                    </template>
+
+                                    <v-card-text>
+                                        <v-img :src="character.picture"></v-img>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
                         </v-row>
-                    </v-container>
-                </v-footer>
-            </v-app>
-        </template>
+                    </v-window-item>
+                </v-window>
+            </v-main>
+
+            <v-footer dark padless color="pink lighten-3">
+                <v-container fluid class="pa-0">
+                    <v-row no-gutters justify="center">
+                        <v-btn text tile block href="https://github.com/dojyorin/ffxiv-areyoumarried" target="_blank" rel="noopener">
+                            <v-icon left>mdi-github</v-icon>
+                            <span>GitHub Repository</span>
+                        </v-btn>
+                    </v-row>
+
+                    <v-row no-gutters justify="center">
+                        <span class="text-caption">Powered by XIVAPI.</span>
+                    </v-row>
+
+                    <v-row no-gutters justify="center">
+                        <span class="text-caption">Copyright SQUARE ENIX CO., LTD. All Rights Reserved.</span>
+                    </v-row>
+                </v-container>
+            </v-footer>
+        </v-app>
     </body>
 
     <script async type="module">
@@ -258,14 +256,6 @@
                         ring: false
                     }
                 }
-            },
-
-            async mounted(){
-                for(const server of await fetchEx("https://xivapi.com/servers")){
-                    this.servers.push(server);
-                }
-
-                this.loading = false;
             },
 
             methods: {
@@ -360,6 +350,14 @@
                         this.vNotify("検索結果が見つかりませんでした", "error");
                     }
                 }
+            },
+
+            async mounted(){
+                for(const server of await fetchEx("https://xivapi.com/servers")){
+                    this.servers.push(server);
+                }
+
+                this.loading = false;
             }
         });
     </script>
