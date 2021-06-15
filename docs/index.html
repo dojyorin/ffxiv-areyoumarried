@@ -26,12 +26,14 @@
 
     <body>
         <v-app id="vue" style="visibility: hidden;">
-            <v-app-bar app dark color="pink lighten-3">
-                <v-toolbar-title class="pl-1">ふ～ん。で、エタバンしてるの？</v-toolbar-title>
-            </v-app-bar>
+            <v-overlay dark z-index="9" opacity="0.9" v-model="loading.visible">
+                <v-progress-circular indeterminate size="128" width="6" color="blue lighten-2">
+                    <span class="white--text">Loading...</span>
+                </v-progress-circular>
+            </v-overlay>
 
-            <v-snackbar app dark top centered :color="notify.color" v-model="notify.visible">
-                <v-icon left>{{notify.icon}}</v-icon>
+            <v-snackbar dark top centered :color="notify.color" v-model="notify.visible">
+                <v-icon left>mdi-bell-ring</v-icon>
                 <span>{{notify.message}}</span>
                 <template #action>
                     <v-btn icon @click="notify.visible = false">
@@ -40,11 +42,9 @@
                 </template>
             </v-snackbar>
 
-            <v-overlay opacity="0.9" v-model="loading">
-                <v-progress-circular indeterminate size="128" width="6" color="blue lighten-2">
-                    <span class="white--text">Loading...</span>
-                </v-progress-circular>
-            </v-overlay>
+            <v-app-bar app dark color="pink lighten-3" height="52">
+                <v-toolbar-title class="pl-1">ふ～ん。で、エタバンしてるの？</v-toolbar-title>
+            </v-app-bar>
 
             <v-main>
                 <v-window touchless class="fill-height" v-model="pages">
@@ -235,11 +235,12 @@
                     notify: {
                         visible: false,
                         message: "",
-                        color: "",
-                        icon: ""
+                        color: ""
+                    },
+                    loading: {
+                        visible: false
                     },
                     pages: 0,
-                    loading: true,
                     servers: [],
                     candidates: [],
                     search: {
@@ -255,15 +256,19 @@
                         marry: false,
                         ring: false
                     }
-                }
+                };
             },
 
             methods: {
-                vNotify(message, color, icon){
-                    this.notify.message = message;
+                vNotify(message, color){
+                    this.notify.visible = false;
+                    this.notify.message = message ?? "";
                     this.notify.color = color ?? "info";
-                    this.notify.icon = icon ?? "mdi-information-outline";
                     this.notify.visible = true;
+                },
+
+                vLoading(state){
+                    this.loading.visible = state ?? false;
                 },
 
                 backHome(reset){
@@ -273,7 +278,6 @@
 
                     Object.assign(this.$data.character, this.$options.data().character);
 
-                    this.loading = false;
                     this.pages = 0;
 
                     this.candidates.splice(0);
@@ -292,37 +296,42 @@
                 },
 
                 async getCharacterList(name, server){
-                    this.loading = true;
+                    this.vLoading(true);
 
-                    const {Results} = await fetchEx("https://xivapi.com/character/search", {
-                        params: {
-                            name: name.trim().split(/\s/).join("+"),
-                            server: server
+                    try{
+                        const {Results} = await fetchEx("https://xivapi.com/character/search", {
+                            params: {
+                                name: name.trim().split(/\s/).join("+"),
+                                server: server
+                            }
+                        });
+
+                        if(!Results.length){
+                            throw "Results not found.";
                         }
-                    });
+                        else if(Results.length === 50){
+                            this.vNotify("検索結果が多すぎるため、上位50件のみ取得されました");
+                        }
 
-                    if(!Results.length){
+                        for(const candidate of Results){
+                            this.candidates.push(candidate);
+                        }
+
+                        this.pages = 1;
+                    }
+                    catch{
                         this.backHome(true);
                         this.vNotify("検索結果が見つかりませんでした", "error");
-                        return;
                     }
-
-                    if(Results.length === 50){
-                        this.vNotify("検索結果が多すぎるため、上位50件のみ取得されました");
+                    finally{
+                        this.vLoading(false);
                     }
-
-                    for(const candidate of Results){
-                        this.candidates.push(candidate);
-                    }
-
-                    this.loading = false;
-                    this.pages = 1;
                 },
 
                 async getCharacter(id){
-                    try{
-                        this.loading = true;
+                    this.vLoading(true);
 
+                    try{
                         const {Character, Mounts} = await fetchEx(`https://xivapi.com/character/${id}`, {
                             params: {
                                 data: "MIMO",
@@ -342,24 +351,28 @@
                             Character.GearSet.Gear.Ring2?.Item?.ID
                         ].some(ring => ring === 8575);
 
-                        this.loading = false;
                         this.pages = 2;
                     }
                     catch{
                         this.backHome(true);
                         this.vNotify("検索結果が見つかりませんでした", "error");
                     }
+                    finally{
+                        this.vLoading(false);
+                    }
                 }
             },
 
             async mounted(){
-                this.$el.style.visibility = "unset";
+                this.$el.removeAttribute("style");
+
+                this.vLoading(true);
 
                 for(const server of await fetchEx("https://xivapi.com/servers")){
                     this.servers.push(server);
                 }
 
-                this.loading = false;
+                this.vLoading(false);
             }
         });
     </script>
