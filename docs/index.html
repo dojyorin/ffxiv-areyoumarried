@@ -2,7 +2,7 @@
 <html lang="ja">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+        <meta name="viewport" content="width=device-width, height=device-height, minimum-scale=1, maximum-scale=1, initial-scale=1, user-scalable=no">
         <meta name="referrer" content="no-referrer">
 
         <script>
@@ -14,26 +14,20 @@
 
         <link rel="icon" href="./favicon.ico">
 
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuetify@latest/dist/vuetify.min.css">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@latest/css/materialdesignicons.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuetify@2/dist/vuetify.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@5/css/materialdesignicons.min.css">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&family=Kosugi+Maru">
 
-        <script src="https://cdn.jsdelivr.net/npm/vue@latest/dist/vue.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/vuetify@latest/dist/vuetify.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vuetify@2/dist/vuetify.min.js"></script>
 
         <title>FF14 闇ツール</title>
     </head>
 
     <body>
-        <v-app id="vue" style="visibility: hidden;">
-            <v-overlay dark z-index="9" opacity="0.9" v-model="loading.visible">
-                <v-progress-circular indeterminate size="128" width="6" color="blue lighten-2">
-                    <span class="white--text">Loading...</span>
-                </v-progress-circular>
-            </v-overlay>
-
+        <v-app id="vue" style="visibility:hidden!important">
             <v-snackbar dark top centered :color="notify.color" v-model="notify.visible">
-                <v-icon left>mdi-bell-ring</v-icon>
+                <v-icon left>mdi-bell-ring-outline</v-icon>
                 <span>{{notify.message}}</span>
                 <template #action>
                     <v-btn icon @click="notify.visible = false">
@@ -42,20 +36,26 @@
                 </template>
             </v-snackbar>
 
+            <v-overlay dark z-index="9" opacity="0.9" v-model="loading.visible">
+                <v-progress-circular indeterminate size="128" width="6" color="blue lighten-2">
+                    <span class="white--text">Loading...</span>
+                </v-progress-circular>
+            </v-overlay>
+
             <v-app-bar app dark color="pink lighten-3" height="52">
                 <v-toolbar-title class="pl-1">ふ～ん。で、エタバンしてるの？</v-toolbar-title>
             </v-app-bar>
 
             <v-main>
-                <v-window touchless class="fill-height" v-model="pages">
-                    <v-window-item transition="fade-transition">
-                        <v-card flat tile>
+                <v-window touchless class="fill-height" v-model="router.path">
+                    <v-window-item value="/" transition="fade-transition">
+                        <v-card flat>
                             <v-card-title class="justify-center">気になるあの子の名前を入れてみよう...!!</v-card-title>
                         </v-card>
 
                         <v-row no-gutters justify="center">
-                            <v-col cols sm="6" md="4" xl="2">
-                                <v-card flat tile>
+                            <v-col cols sm="6" md="4" lg="2" xl="1">
+                                <v-card flat>
                                     <v-card-text>
                                         <v-text-field clearable prepend-icon="mdi-alphabetical-variant" label="キャラクター名" v-model="search.name"></v-text-field>
                                         <v-autocomplete clearable prepend-icon="mdi-web" label="ワールド" :items="servers" v-model="search.server"></v-autocomplete>
@@ -78,9 +78,9 @@
                         </v-row>
                     </v-window-item>
 
-                    <v-window-item transition="fade-transition">
+                    <v-window-item value="/list" transition="fade-transition">
                         <v-container fluid>
-                            <v-card flat tile>
+                            <v-card flat>
                                 <v-card-actions class="justify-center">
                                     <v-btn text tile @click="backHome(false)">
                                         <v-icon left>mdi-arrow-left</v-icon>
@@ -108,8 +108,8 @@
                         </v-container>
                     </v-window-item>
 
-                    <v-window-item transition="fade-transition">
-                        <v-card flat tile>
+                    <v-window-item value="/result" transition="fade-transition">
+                        <v-card flat>
                             <v-card-actions class="justify-center">
                                 <v-btn text tile @click="backHome(true)">
                                     <v-icon left>mdi-reload</v-icon>
@@ -119,8 +119,8 @@
                         </v-card>
 
                         <v-row no-gutters justify="center">
-                            <v-col cols sm=10 md="6">
-                                <v-card flat tile>
+                            <v-col cols sm="10" md="6" lg="4" xl="2">
+                                <v-card flat>
                                     <v-card-title>{{character.name}}</v-card-title>
                                     <v-card-subtitle>
                                         ID: <a :href="`https://jp.finalfantasyxiv.com/lodestone/character/${character.id}`" target="_blank" rel="noopener">{{character.id}}</a>
@@ -202,29 +202,34 @@
     </body>
 
     <script async type="module">
-        async function fetchEx(url, option){
-            return (await fetch(Object.entries(option?.params ?? {}).reduce((u, [k, v])=>{
-                u.searchParams.append(k, v);
-                return u;
-            }, new URL(url, /^http(s|):\/\//i.test(url) ? undefined : location.href)), {
-                headers: Object.entries(option?.headers ?? {}).reduce((h, [k, v])=>{
-                    h.append(k, v);
-                    return h;
-                }, new Headers()),
-                method: option?.method ?? "get",
-                mode: option?.mode ?? "cors",
-                cache: option?.cache ?? "no-cache",
-                credentials: option?.credentials ?? "omit",
-                referrerPolicy: option?.referrerPolicy ?? "no-referrer",
-                referrer: option?.referrer ?? "",
-                redirect: option?.redirect ?? "follow",
-                keepalive: option?.keepalive ?? false,
-                integrity: option?.integrity ?? "",
-                signal: option?.signal ?? null,
-                window: null,
-                body: option?.body ?? null
-            }))[option?.type ?? "json"]();
-        }
+        Object.defineProperty(globalThis, "$fetchEx", {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            async value(url, option){
+                return (await fetch(Object.entries(option?.params ?? {}).reduce((u, [k, v])=>{
+                    u.searchParams.append(k, v);
+                    return u;
+                }, new URL(url, /^http(s|):\/\//i.test(url) ? undefined : location.href)), {
+                    headers: Object.entries(option?.headers ?? {}).reduce((h, [k, v])=>{
+                        h.append(k, v);
+                        return h;
+                    }, new Headers()),
+                    method: option?.method ?? "get",
+                    mode: option?.mode ?? "cors",
+                    cache: option?.cache ?? "no-cache",
+                    credentials: option?.credentials ?? "omit",
+                    referrerPolicy: option?.referrerPolicy ?? "no-referrer",
+                    referrer: option?.referrer ?? "",
+                    redirect: option?.redirect ?? "follow",
+                    keepalive: option?.keepalive ?? false,
+                    integrity: option?.integrity ?? "",
+                    signal: option?.signal ?? null,
+                    window: null,
+                    body: option?.body ?? null
+                }))[option?.type ?? "json"]();
+            }
+        });
 
         const vue = new Vue({
             el: "#vue",
@@ -240,7 +245,9 @@
                     loading: {
                         visible: false
                     },
-                    pages: 0,
+                    router: {
+                        path: "/"
+                    },
                     servers: [],
                     candidates: [],
                     search: {
@@ -271,6 +278,10 @@
                     this.loading.visible = state ?? false;
                 },
 
+                vRouter(path){
+                    this.router.path = path ?? "/";
+                },
+
                 backHome(reset){
                     if(reset){
                         Object.assign(this.$data.search, this.$options.data().search);
@@ -278,7 +289,7 @@
 
                     Object.assign(this.$data.character, this.$options.data().character);
 
-                    this.pages = 0;
+                    this.vRouter("/");
 
                     this.candidates.splice(0);
                 },
@@ -299,7 +310,7 @@
                     this.vLoading(true);
 
                     try{
-                        const {Results} = await fetchEx("https://xivapi.com/character/search", {
+                        const {Results} = await $fetchEx("https://xivapi.com/character/search", {
                             params: {
                                 name: name.trim().split(/\s/).join("+"),
                                 server: server
@@ -317,7 +328,7 @@
                             this.candidates.push(candidate);
                         }
 
-                        this.pages = 1;
+                        this.vRouter("/list");
                     }
                     catch{
                         this.backHome(true);
@@ -332,7 +343,7 @@
                     this.vLoading(true);
 
                     try{
-                        const {Character, Mounts} = await fetchEx(`https://xivapi.com/character/${id}`, {
+                        const {Character, Mounts} = await $fetchEx(`https://xivapi.com/character/${id}`, {
                             params: {
                                 data: "MIMO",
                                 extended: 1
@@ -351,7 +362,7 @@
                             Character.GearSet.Gear.Ring2?.Item?.ID
                         ].some(ring => ring === 8575);
 
-                        this.pages = 2;
+                        this.vRouter("result");
                     }
                     catch{
                         this.backHome(true);
@@ -368,7 +379,7 @@
 
                 this.vLoading(true);
 
-                for(const server of await fetchEx("https://xivapi.com/servers")){
+                for(const server of await $fetchEx("https://xivapi.com/servers")){
                     this.servers.push(server);
                 }
 
