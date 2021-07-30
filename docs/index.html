@@ -78,7 +78,7 @@
                         </v-row>
                     </v-window-item>
 
-                    <v-window-item value="/list" transition="fade-transition">
+                    <v-window-item value="/candidates" transition="fade-transition">
                         <v-container fluid>
                             <v-card flat>
                                 <v-card-actions class="justify-center">
@@ -108,7 +108,7 @@
                         </v-container>
                     </v-window-item>
 
-                    <v-window-item value="/result" transition="fade-transition">
+                    <v-window-item value="/character" transition="fade-transition">
                         <v-card flat>
                             <v-card-actions class="justify-center">
                                 <v-btn text tile @click="backHome(true)">
@@ -328,7 +328,7 @@
                             this.candidates.push(candidate);
                         }
 
-                        this.vRouter("/list");
+                        this.vRouter("/candidates");
                     }
                     catch{
                         this.backHome(true);
@@ -362,7 +362,7 @@
                             Character.GearSet.Gear.Ring2?.Item?.ID
                         ].some(ring => ring === 8575);
 
-                        this.vRouter("result");
+                        this.vRouter("/character");
                     }
                     catch{
                         this.backHome(true);
