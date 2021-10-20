@@ -5,13 +5,6 @@
         <meta name="viewport" content="width=device-width, height=device-height, minimum-scale=1, maximum-scale=1, initial-scale=1, user-scalable=no">
         <meta name="referrer" content="no-referrer">
 
-        <script>
-            if(/(trident|edge)\//i.test(navigator.userAgent)){
-                alert("お使いのウェブブラウザは対応していません。");
-                document.execCommand("stop");
-            }
-        </script>
-
         <link rel="icon" href="./favicon.ico">
 
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuetify@2/dist/vuetify.min.css">
@@ -204,7 +197,7 @@
     </body>
 
     <script async type="module">
-        Object.defineProperty(globalThis, "$fetchEx", {
+        Object.defineProperty(globalThis, "$fetch", {
             enumerable: false,
             configurable: false,
             writable: false,
@@ -312,7 +305,7 @@
                     this.vLoading(true);
 
                     try{
-                        const {Results} = await $fetchEx("https://xivapi.com/character/search", {
+                        const {Results} = await $fetch("https://xivapi.com/character/search", {
                             params: {
                                 name: name.trim().split(/\s/).join("+"),
                                 server: server
@@ -345,7 +338,7 @@
                     this.vLoading(true);
 
                     try{
-                        const {Character, Mounts} = await $fetchEx(`https://xivapi.com/character/${id}`, {
+                        const {Character, Mounts} = await $fetch(`https://xivapi.com/character/${id}`, {
                             params: {
                                 data: "MIMO",
                                 extended: 1
@@ -379,7 +372,7 @@
             async mounted(){
                 this.vLoading(true);
 
-                for(const server of await $fetchEx("https://xivapi.com/servers")){
+                for(const server of await $fetch("https://xivapi.com/servers")){
                     this.servers.push(server);
                 }
 
