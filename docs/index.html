@@ -197,7 +197,7 @@
     </body>
 
     <script async type="module">
-        async function $fetch(path, option){
+        async function fetchExtend(path, option){
             const {origin, pathname} = /^https*:\/\//i.test(path) ? new URL(path) : new URL(path, location.href);
             const query = new URLSearchParams(Object.entries(option?.query ?? {})).toString();
 
@@ -299,7 +299,7 @@
                     this.vLoading(true);
 
                     try{
-                        const {Results} = await $fetch("https://xivapi.com/character/search", {
+                        const {Results} = await fetchExtend("https://xivapi.com/character/search", {
                             query: {
                                 name: name.trim().split(/\s/).join("+"),
                                 server: server
@@ -332,7 +332,7 @@
                     this.vLoading(true);
 
                     try{
-                        const {Character, Mounts} = await $fetch(`https://xivapi.com/character/${id}`, {
+                        const {Character, Mounts} = await fetchExtend(`https://xivapi.com/character/${id}`, {
                             query: {
                                 data: "MIMO",
                                 extended: 1
@@ -366,7 +366,7 @@
             async mounted(){
                 this.vLoading(true);
 
-                for(const server of await $fetch("https://xivapi.com/servers")){
+                for(const server of await fetchExtend("https://xivapi.com/servers")){
                     this.servers.push(server);
                 }
 
