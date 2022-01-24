@@ -197,33 +197,28 @@
     </body>
 
     <script async type="module">
-        Object.defineProperty(globalThis, "$fetch", {
-            enumerable: false,
-            configurable: false,
-            writable: false,
-            async value(path, option){
-                const response = await fetch(Object.entries(option?.params ?? {}).reduce((url, [key, value])=>{
-                    url.searchParams.append(key, value);
-                    return url;
-                }, new URL(path, /^http(s|):\/\//i.test(path) ? undefined : location.href)), {
-                    method: option?.method ?? "get",
-                    credentials: option?.credentials ?? "omit",
-                    mode: option?.mode ?? "cors",
-                    cache: option?.cache ?? "no-cache",
-                    referrerPolicy: option?.referrerPolicy ?? "no-referrer",
-                    referrer: option?.referrer ?? "",
-                    redirect: option?.redirect ?? "follow",
-                    keepalive: option?.keepalive ?? false,
-                    integrity: "",
-                    signal: null,
-                    window: null,
-                    headers: option?.headers ?? {},
-                    body: option?.body ?? null
-                });
+        async function $fetch(path, option){
+            const {origin, pathname} = /^https*:\/\//i.test(path) ? new URL(path) : new URL(path, location.href);
+            const query = new URLSearchParams(Object.entries(option?.query ?? {})).toString();
 
-                return option?.type === "raw" ? response : response[option?.type ?? "json"]();
-            }
-        });
+            const response = await fetch(`${origin}${pathname === "/" ? "": pathname}${query === "" ? "" : `?${query}`}`.toLowerCase(), {
+                method: option?.method ?? "get",
+                credentials: option?.credentials ?? "omit",
+                mode: option?.mode ?? "cors",
+                cache: option?.cache ?? "no-cache",
+                referrerPolicy: option?.referrerPolicy ?? "no-referrer",
+                referrer: option?.referrer ?? "",
+                redirect: option?.redirect ?? "follow",
+                keepalive: option?.keepalive ?? false,
+                integrity: "",
+                signal: null,
+                window: null,
+                headers: option?.headers ?? {},
+                body: option?.body ?? null
+            });
+
+            return option?.type === "raw" ? response : response[option?.type ?? "json"]();
+        }
 
         const vue = new Vue({
             el: "#vue",
@@ -305,7 +300,7 @@
 
                     try{
                         const {Results} = await $fetch("https://xivapi.com/character/search", {
-                            params: {
+                            query: {
                                 name: name.trim().split(/\s/).join("+"),
                                 server: server
                             }
@@ -338,7 +333,7 @@
 
                     try{
                         const {Character, Mounts} = await $fetch(`https://xivapi.com/character/${id}`, {
-                            params: {
+                            query: {
                                 data: "MIMO",
                                 extended: 1
                             }
