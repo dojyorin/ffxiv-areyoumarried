@@ -301,8 +301,8 @@
                     try{
                         const {Results} = await fetchExtend("https://xivapi.com/character/search", {
                             query: {
-                                name: name.trim().split(/\s/).join("+"),
-                                server: server
+                                server,
+                                name: name.trim().split(/ /).join("+")
                             }
                         });
 
