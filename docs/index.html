@@ -20,17 +20,17 @@
     <body>
         <template id="vue">
             <v-app>
-                <v-snackbar dark top centered :color="notify.color" v-model="notify.visible">
+                <v-snackbar dark top centered :color="vNotifyColor" v-model="vNotifyVisible">
                     <v-icon left>mdi-bell-ring-outline</v-icon>
-                    <span>{{notify.message}}</span>
+                    <span>{{vNotifyMessage}}</span>
                     <template #action>
-                        <v-btn icon @click="notify.visible = false">
+                        <v-btn icon @click="vNotifyVisible = false">
                             <v-icon>mdi-close</v-icon>
                         </v-btn>
                     </template>
                 </v-snackbar>
 
-                <v-overlay dark z-index="9" opacity="0.9" v-model="loading.visible">
+                <v-overlay dark z-index="9" opacity="0.9" v-model="vLoadingVisible">
                     <v-progress-circular indeterminate size="128" width="6" color="blue lighten-2">
                         <span class="white--text">Loading...</span>
                     </v-progress-circular>
@@ -41,8 +41,8 @@
                 </v-app-bar>
 
                 <v-main>
-                    <v-window touchless class="fill-height" v-model="router.path">
-                        <v-window-item value="/" transition="fade-transition">
+                    <v-window touchless class="fill-height" v-model="vRouterPath">
+                        <v-window-item class="fill-height" transition="fade-transition" value="/">
                             <v-card flat>
                                 <v-card-title class="justify-center">気になるあの子の名前を入れてみよう...!!</v-card-title>
                             </v-card>
@@ -52,7 +52,7 @@
                                     <v-card flat>
                                         <v-card-text>
                                             <v-text-field clearable prepend-icon="mdi-alphabetical-variant" label="キャラクター名" v-model="search.name"></v-text-field>
-                                            <v-autocomplete clearable prepend-icon="mdi-web" label="ワールド" :items="servers" v-model="search.server"></v-autocomplete>
+                                            <v-autocomplete clearable prepend-icon="mdi-web" label="ワールド" :items="syncServers" v-model="search.server"></v-autocomplete>
                                         </v-card-text>
 
                                         <v-card-text class="text-center pa-0">または</v-card-text>
@@ -72,37 +72,41 @@
                             </v-row>
                         </v-window-item>
 
-                        <v-window-item value="/candidates" transition="fade-transition">
-                            <v-container fluid>
-                                <v-card flat>
-                                    <v-card-actions class="justify-center">
-                                        <v-btn text tile @click="backHome(false)">
-                                            <v-icon left>mdi-arrow-left</v-icon>
-                                            <span>検索をやり直す</span>
-                                        </v-btn>
-                                    </v-card-actions>
-                                </v-card>
+                        <v-window-item class="fill-height" transition="fade-transition" value="/candidates">
+                            <v-card flat>
+                                <v-card-actions class="justify-center">
+                                    <v-btn text tile @click="backHome(false)">
+                                        <v-icon left>mdi-arrow-left</v-icon>
+                                        <span>検索をやり直す</span>
+                                    </v-btn>
+                                </v-card-actions>
+                            </v-card>
 
-                                <v-list>
-                                    <v-subheader>検索結果: {{candidates.length}} 件</v-subheader>
-                                    <template v-for="candidate in candidates">
-                                        <v-list-item :key="candidate.ID" @click="getCharacter(candidate.ID)">
-                                            <v-list-item-avatar size="48">
-                                                <v-img :src="candidate.Avatar"></v-img>
-                                            </v-list-item-avatar>
+                            <v-row no-gutters justify="center">
+                                <v-col cols sm="6" md="4" lg="2" xl="1">
+                                    <v-list>
+                                        <v-subheader>検索結果: {{syncCandidates.length}} 件</v-subheader>
+                                        <template v-for="(candidate, i) in syncCandidates">
+                                            <v-divider v-if="i"></v-divider>
 
-                                            <v-list-item-content>
-                                                <v-list-item-title>{{candidate.Name}}</v-list-item-title>
-                                                <v-list-item-subtitle>ID: {{candidate.ID}}</v-list-item-subtitle>
-                                                <v-list-item-subtitle>Server: {{candidate.Server}}</v-list-item-subtitle>
-                                            </v-list-item-content>
-                                        </v-list-item>
-                                    </template>
-                                </v-list>
-                            </v-container>
+                                            <v-list-item :key="candidate.ID" @click="getCharacter(candidate.ID)">
+                                                <v-list-item-avatar size="48">
+                                                    <v-img :src="candidate.Avatar"></v-img>
+                                                </v-list-item-avatar>
+
+                                                <v-list-item-content>
+                                                    <v-list-item-title>{{candidate.Name}}</v-list-item-title>
+                                                    <v-list-item-subtitle>ID: {{candidate.ID}}</v-list-item-subtitle>
+                                                    <v-list-item-subtitle>Server: {{candidate.Server}}</v-list-item-subtitle>
+                                                </v-list-item-content>
+                                            </v-list-item>
+                                        </template>
+                                    </v-list>
+                                </v-col>
+                            </v-row>
                         </v-window-item>
 
-                        <v-window-item value="/character" transition="fade-transition">
+                        <v-window-item class="fill-height" transition="fade-transition" value="/character">
                             <v-card flat>
                                 <v-card-actions class="justify-center">
                                     <v-btn text tile @click="backHome(true)">
@@ -226,19 +230,14 @@
 
             data(){
                 return {
-                    notify: {
-                        visible: false,
-                        message: "",
-                        color: ""
-                    },
-                    loading: {
-                        visible: false
-                    },
-                    router: {
-                        path: "/"
-                    },
-                    servers: [],
-                    candidates: [],
+                    vNotifyVisible: false,
+                    vNotifyMessage: "",
+                    vNotifyColor: "",
+                    vLoadingVisible: false,
+                    vDrawerVisible: false,
+                    vRouterPath: "/",
+                    syncServers: [],
+                    syncCandidates: [],
                     search: {
                         name: "",
                         server: "",
@@ -257,18 +256,18 @@
 
             methods: {
                 vNotify(message, color){
-                    this.notify.visible = false;
-                    this.notify.message = message ?? "";
-                    this.notify.color = color ?? "info";
-                    this.notify.visible = true;
+                    this.vNotifyVisible = false;
+                    this.vNotifyMessage = message ?? "";
+                    this.vNotifyColor = color ?? "info";
+                    this.vNotifyVisible = true;
                 },
 
                 vLoading(state){
-                    this.loading.visible = state ?? false;
+                    this.vLoadingVisible = state ?? false;
                 },
 
                 vRouter(path){
-                    this.router.path = path ?? "/";
+                    this.vRouterPath = path ?? "/";
                 },
 
                 backHome(reset){
@@ -280,7 +279,7 @@
 
                     this.vRouter("/");
 
-                    this.candidates.splice(0);
+                    this.syncCandidates.splice(0);
                 },
 
                 async doSearch(){
@@ -314,7 +313,7 @@
                         }
 
                         for(const candidate of Results){
-                            this.candidates.push(candidate);
+                            this.syncCandidates.push(candidate);
                         }
 
                         this.vRouter("/candidates");
@@ -367,7 +366,7 @@
                 this.vLoading(true);
 
                 for(const server of await fetchExtend("https://xivapi.com/servers")){
-                    this.servers.push(server);
+                    this.syncServers.push(server);
                 }
 
                 this.vLoading(false);
