@@ -2,14 +2,14 @@
 <html lang="ja">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, height=device-height, minimum-scale=1, maximum-scale=1, initial-scale=1, user-scalable=no">
+        <meta name="viewport" content="height=device-height,width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
         <meta name="referrer" content="no-referrer">
 
         <link rel="icon" href="./favicon.ico">
 
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuetify@2/dist/vuetify.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@5/css/materialdesignicons.min.css">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&family=Kosugi+Maru">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?display=swap&family=Kosugi+Maru:wght@400">
 
         <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/vuetify@2/dist/vuetify.min.js"></script>
@@ -42,23 +42,23 @@
 
                 <v-main>
                     <v-window touchless class="fill-height" v-model="vRouterPath">
-                        <v-window-item class="fill-height" transition="fade-transition" value="/">
+                        <v-window-item class="fill-height" value="/">
                             <v-card flat>
                                 <v-card-title class="justify-center">気になるあの子の名前を入れてみよう...!!</v-card-title>
                             </v-card>
 
                             <v-row no-gutters justify="center">
-                                <v-col cols sm="6" md="4" lg="2" xl="1">
+                                <v-col cols sm="6" md="4" lg="3">
                                     <v-card flat>
                                         <v-card-text>
-                                            <v-text-field clearable prepend-icon="mdi-alphabetical-variant" label="キャラクター名" v-model="search.name"></v-text-field>
-                                            <v-autocomplete clearable prepend-icon="mdi-web" label="ワールド" :items="syncServers" v-model="search.server"></v-autocomplete>
+                                            <v-text-field clearable prepend-icon="mdi-alphabetical-variant" label="キャラクター名" v-model="searchName"></v-text-field>
+                                            <v-autocomplete clearable prepend-icon="mdi-web" label="ワールド" :items="syncServers" v-model="searchServer"></v-autocomplete>
                                         </v-card-text>
 
                                         <v-card-text class="text-center pa-0">または</v-card-text>
 
                                         <v-card-text>
-                                            <v-text-field clearable prepend-icon="mdi-numeric" type="number" label="Lodestone ID" v-model="search.id"></v-text-field>
+                                            <v-text-field clearable prepend-icon="mdi-numeric" label="Lodestone ID" v-model="searchId"></v-text-field>
                                         </v-card-text>
 
                                         <v-card-actions>
@@ -72,7 +72,7 @@
                             </v-row>
                         </v-window-item>
 
-                        <v-window-item class="fill-height" transition="fade-transition" value="/candidates">
+                        <v-window-item class="fill-height" value="/candidate">
                             <v-card flat>
                                 <v-card-actions class="justify-center">
                                     <v-btn text tile @click="backHome(false)">
@@ -83,7 +83,7 @@
                             </v-card>
 
                             <v-row no-gutters justify="center">
-                                <v-col cols sm="6" md="4" lg="2" xl="1">
+                                <v-col cols sm="6" md="4" lg="3">
                                     <v-list>
                                         <v-subheader>検索結果: {{syncCandidates.length}} 件</v-subheader>
                                         <template v-for="(candidate, i) in syncCandidates">
@@ -106,7 +106,7 @@
                             </v-row>
                         </v-window-item>
 
-                        <v-window-item class="fill-height" transition="fade-transition" value="/character">
+                        <v-window-item class="fill-height" value="/character">
                             <v-card flat>
                                 <v-card-actions class="justify-center">
                                     <v-btn text tile @click="backHome(true)">
@@ -116,19 +116,19 @@
                                 </v-card-actions>
                             </v-card>
 
-                            <v-row no-gutters justify="center">
-                                <v-col cols sm="10" md="6" lg="4" xl="2">
+                            <v-row no-gutters justify="center" v-if="targetCharacter">
+                                <v-col cols sm="10" md="6" lg="4">
                                     <v-card flat>
-                                        <v-card-title>{{character.name}}</v-card-title>
+                                        <v-card-title>{{targetCharacter.name}}</v-card-title>
                                         <v-card-subtitle>
-                                            ID: <a :href="`https://jp.finalfantasyxiv.com/lodestone/character/${character.id}`" target="_blank" rel="noopener">{{character.id}}</a>
+                                            ID: <a :href="`https://jp.finalfantasyxiv.com/lodestone/character/${targetCharacter.id}`" target="_blank" rel="noopener">{{targetCharacter.id}}</a>
                                             <br>
-                                            Server: {{character.server}}
+                                            Server: {{targetCharacter.server}}
                                         </v-card-subtitle>
 
                                         <v-card-text class="py-0">さんはエターナルバンドを...</v-card-text>
 
-                                        <template v-if="character.marry && character.ring">
+                                        <template v-if="targetCharacter.predictRing">
                                             <v-card-title>している可能性が高いです。</v-card-title>
 
                                             <v-card-text>
@@ -136,13 +136,11 @@
                                             </v-card-text>
 
                                             <v-card-text>
-                                                Note: 所持マウントからエターナルチョコボを検出しました
-                                                <br>
                                                 Note: 装備品/武具投影からエターナルリングを検出しました
                                             </v-card-text>
                                         </template>
 
-                                        <template v-else-if="character.marry">
+                                        <template v-else-if="targetCharacter.predictMarry">
                                             <v-card-title>している可能性があります。</v-card-title>
 
                                             <v-card-text>
@@ -169,7 +167,7 @@
                                         </template>
 
                                         <v-card-text>
-                                            <v-img :src="character.picture"></v-img>
+                                            <v-img :src="targetCharacter.picture"></v-img>
                                         </v-card-text>
                                     </v-card>
                                 </v-col>
@@ -181,18 +179,24 @@
                 <v-footer dark padless color="pink lighten-3">
                     <v-container fluid class="pa-0">
                         <v-row no-gutters justify="center">
-                            <v-btn text tile block href="https://github.com/dojyorin/ffxiv-areyoumarried" target="_blank" rel="noopener">
-                                <v-icon left>mdi-github</v-icon>
-                                <span>GitHub Repository</span>
-                            </v-btn>
-                        </v-row>
+                            <v-col cols="12">
+                                <v-btn text tile block href="https://github.com/dojyorin/ffxiv-areyoumarried" target="_blank" rel="noopener">
+                                    <v-icon left>mdi-github</v-icon>
+                                    <span>GitHub Repository</span>
+                                </v-btn>
+                            </v-col>
 
-                        <v-row no-gutters justify="center">
-                            <span class="text-caption">Powered by XIVAPI.</span>
-                        </v-row>
+                            <v-col cols="12">
+                                <v-card flat color="transparent">
+                                    <v-card-text class="pa-0 text-center white--text">Powered by XIVAPI.</v-card-text>
+                                </v-card>
+                            </v-col>
 
-                        <v-row no-gutters justify="center">
-                            <span class="text-caption">Copyright SQUARE ENIX CO., LTD. All Rights Reserved.</span>
+                            <v-col cols="12">
+                                <v-card flat color="transparent">
+                                    <v-card-text class="pa-0 text-center white--text">(C) SQUARE ENIX CO., LTD. All Rights Reserved.</v-card-text>
+                                </v-card>
+                            </v-col>
                         </v-row>
                     </v-container>
                 </v-footer>
@@ -238,19 +242,10 @@
                     vRouterPath: "/",
                     syncServers: [],
                     syncCandidates: [],
-                    search: {
-                        name: "",
-                        server: "",
-                        id: ""
-                    },
-                    character: {
-                        name: "",
-                        id: 0,
-                        server: "",
-                        picture: "",
-                        marry: false,
-                        ring: false
-                    }
+                    targetCharacter: null,
+                    searchId: "",
+                    searchName: "",
+                    searchServer: ""
                 };
             },
 
@@ -272,25 +267,47 @@
 
                 backHome(reset){
                     if(reset){
-                        Object.assign(this.$data.search, this.$options.data().search);
+                        this.searchId = "";
+                        this.searchName = "";
+                        this.searchServer = "";
                     }
 
-                    Object.assign(this.$data.character, this.$options.data().character);
+                    this.targetCharacter = null;
+                    this.syncCandidates.splice(0);
 
                     this.vRouter("/");
-
-                    this.syncCandidates.splice(0);
                 },
 
                 async doSearch(){
-                    if(this.search.id){
-                        await this.getCharacter(this.search.id);
+                    if(this.searchId){
+                        await this.getCharacter(Number(this.searchId));
                     }
-                    else if(this.search.name){
-                        await this.getCharacterList(this.search.name, this.search.server);
+                    else if(this.searchName){
+                        await this.getCharacterList(this.searchName, this.searchServer);
                     }
                     else{
                         this.vNotify("検索ワードを入力してください", "error");
+                    }
+                },
+
+                async getServerList(){
+                    this.vLoading(true);
+
+                    try{
+                        const servers = await fetchExtend("https://xivapi.com/servers");
+
+                        for(const server of servers){
+                            this.syncServers.push(server);
+                        }
+
+                        this.vNotify("サーバーリストを取得しました", "success");
+                    }
+                    catch(e){
+                        console.error(e);
+                        this.vNotify("サーバーリストを取得できませんでした", "error");
+                    }
+                    finally{
+                        this.vLoading(false);
                     }
                 },
 
@@ -316,9 +333,10 @@
                             this.syncCandidates.push(candidate);
                         }
 
-                        this.vRouter("/candidates");
+                        this.vRouter("/candidate");
                     }
-                    catch{
+                    catch(e){
+                        console.error(e);
                         this.backHome(true);
                         this.vNotify("検索結果が見つかりませんでした", "error");
                     }
@@ -338,21 +356,24 @@
                             }
                         });
 
-                        this.character.name = Character.Name;
-                        this.character.id = Character.ID;
-                        this.character.server = `${Character.Server} (${Character.DC})`;
-                        this.character.picture = Character.Portrait;
-                        this.character.marry = Mounts?.some(({Name}) => Name === "Ceremony Chocobo") ?? false;
-                        this.character.ring = [
-                            Character.GearSet.Gear.Ring1?.Mirage?.ID,
-                            Character.GearSet.Gear.Ring2?.Mirage?.ID,
-                            Character.GearSet.Gear.Ring1?.Item?.ID,
-                            Character.GearSet.Gear.Ring2?.Item?.ID
-                        ].some(ring => ring === 8575);
+                        this.targetCharacter = {
+                            id: Character.ID,
+                            name: Character.Name,
+                            server: Character.Server,
+                            picture: Character.Portrait,
+                            predictMarry: Mounts?.some(({Name}) => Name === "Ceremony Chocobo") ?? false,
+                            predictRing: [
+                                Character.GearSet.Gear.Ring1?.Mirage?.ID,
+                                Character.GearSet.Gear.Ring2?.Mirage?.ID,
+                                Character.GearSet.Gear.Ring1?.Item?.ID,
+                                Character.GearSet.Gear.Ring2?.Item?.ID
+                            ].some(ring => ring === 8575)
+                        };
 
                         this.vRouter("/character");
                     }
-                    catch{
+                    catch(e){
+                        console.error(e);
                         this.backHome(true);
                         this.vNotify("検索結果が見つかりませんでした", "error");
                     }
@@ -363,13 +384,7 @@
             },
 
             async mounted(){
-                this.vLoading(true);
-
-                for(const server of await fetchExtend("https://xivapi.com/servers")){
-                    this.syncServers.push(server);
-                }
-
-                this.vLoading(false);
+                await this.getServerList();
             }
         });
     </script>
@@ -378,8 +393,8 @@
         ::-webkit-scrollbar{
             display: none !important;
         }
-        .v-application{
-            font-family: "M PLUS Rounded 1c", "Kosugi Maru" !important;
+        *{
+            font-family: "Kosugi Maru" !important;
         }
         .v-btn{
             text-transform: none !important;
