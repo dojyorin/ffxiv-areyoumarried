@@ -30,7 +30,7 @@
                     </template>
                 </v-snackbar>
 
-                <v-overlay dark z-index="9" opacity="0.9" v-model="vLoadingVisible">
+                <v-overlay dark z-index="999" opacity="0.9" v-model="vLoadingVisible">
                     <v-progress-circular indeterminate size="128" width="6" color="blue lighten-2">
                         <span class="white--text">Loading...</span>
                     </v-progress-circular>
@@ -238,7 +238,6 @@
                     vNotifyMessage: "",
                     vNotifyColor: "",
                     vLoadingVisible: false,
-                    vDrawerVisible: false,
                     vRouterPath: "/",
                     syncServers: [],
                     syncCandidates: [],
