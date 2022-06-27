@@ -121,7 +121,7 @@
                                     <v-card flat>
                                         <v-card-title>{{targetCharacter.name}}</v-card-title>
                                         <v-card-subtitle>
-                                            ID: <a :href="`https://jp.finalfantasyxiv.com/lodestone/character/${targetCharacter.id}`" target="_blank" rel="noopener">{{targetCharacter.id}}</a>
+                                            ID: <a target="_blank" rel="noopener" :href="`https://jp.finalfantasyxiv.com/lodestone/character/${targetCharacter.id}`">{{targetCharacter.id}}</a>
                                             <br>
                                             Server: {{targetCharacter.server}}
                                         </v-card-subtitle>
@@ -180,7 +180,7 @@
                     <v-container fluid class="pa-0">
                         <v-row no-gutters justify="center">
                             <v-col cols="12">
-                                <v-btn text tile block href="https://github.com/dojyorin/ffxiv-areyoumarried" target="_blank" rel="noopener">
+                                <v-btn text tile block target="_blank" rel="noopener" href="https://github.com/dojyorin/ffxiv-areyoumarried">
                                     <v-icon left>mdi-github</v-icon>
                                     <span>GitHub Repository</span>
                                 </v-btn>
