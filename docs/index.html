@@ -322,9 +322,9 @@
                         });
 
                         if(!Results.length){
-                            throw "Results not found.";
+                            throw new Error("No results.");
                         }
-                        else if(Results.length === 50){
+                        else if(Results.length >= 50){
                             this.vNotify("検索結果が多すぎるため、上位50件のみ取得されました");
                         }
 
