@@ -205,27 +205,17 @@
     </body>
 
     <script async type="module">
-        async function fetchExtend(path, option){
-            const {origin, pathname} = /^https{0,1}:\/\//i.test(path) ? new URL(path) : new URL(path, location.href);
-            const query = new URLSearchParams(option?.query ?? {}).toString();
+        import {default as XIVAPI} from "https://esm.sh/@xivapi/js@latest?bundle&target=esnext";
+        import {default as EorzeaTime} from "https://esm.sh/eorzea-time@latest?bundle&target=esnext";
+        import {default as EorzeaWeather} from "https://esm.sh/eorzea-weather@latest?bundle&target=esnext";
 
-            const response = await fetch(`${origin}${pathname}${query && "?"}${query}`, {
-                method: option?.method ?? "GET",
-                credentials: option?.credentials ?? "omit",
-                mode: option?.mode ?? "cors",
-                cache: option?.cache ?? "no-cache",
-                referrerPolicy: option?.referrerPolicy ?? "no-referrer",
-                referrer: option?.referrer ?? "",
-                redirect: option?.redirect ?? "follow",
-                keepalive: option?.keepalive ?? false,
-                integrity: "",
-                signal: null,
-                window: null,
-                headers: option?.headers ?? {},
-                body: option?.body ?? null
-            });
+        const xiv = new XIVAPI();
+        const et = new EorzeaTime();
 
-            return option?.type === "response" ? response : response[option?.type ?? "json"]();
+        function getWeather(zone){
+            return new EorzeaWeather(zone, {
+                locale: "ja"
+            }).getWeather(new Date());
         }
 
         const vue = new Vue({
@@ -293,7 +283,7 @@
                     this.vLoading(true);
 
                     try{
-                        const servers = await fetchExtend("https://xivapi.com/servers");
+                        const servers = await xiv.data.servers();
 
                         for(const server of servers){
                             this.syncServers.push(server);
@@ -314,11 +304,8 @@
                     this.vLoading(true);
 
                     try{
-                        const {Results} = await fetchExtend("https://xivapi.com/character/search", {
-                            query: {
-                                server,
-                                name: name.trim().split(/ /).join("+")
-                            }
+                        const {Results} = await xiv.character.search(name.trim(), {
+                            server: server
                         });
 
                         if(!Results.length){
@@ -348,11 +335,9 @@
                     this.vLoading(true);
 
                     try{
-                        const {Character, Mounts} = await fetchExtend(`https://xivapi.com/character/${id}`, {
-                            query: {
-                                data: "MIMO",
-                                extended: 1
-                            }
+                        const {Character, Mounts} = await xiv.character.get(id, {
+                            data: "MIMO",
+                            extended: true
                         });
 
                         this.targetCharacter = {
